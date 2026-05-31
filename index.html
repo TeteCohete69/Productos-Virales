@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Viral Product Detector v2</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0a10; --card:#13131c; --card2:#1c1c28; --border:#252535;
+  --accent:#7c3aed; --accent2:#a855f7; --green:#10b981; --yellow:#f59e0b;
+  --red:#ef4444; --blue:#3b82f6; --pink:#ec4899; --tiktok:#fe2c55;
+  --ig:#e1306c; --fb:#1877f2; --text:#e2e8f0; --muted:#6b7280;
+}
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* HEADER */
+.header { background:linear-gradient(135deg,#150a2e 0%,#0a0a10 70%); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.header h1 { font-size:1.7rem; font-weight:900; background:linear-gradient(135deg,#a855f7,#60a5fa,#34d399); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header p { color:var(--muted); font-size:0.82rem; margin-top:3px; }
+.header-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.badge { padding:5px 12px; border-radius:999px; font-size:0.72rem; font-weight:800; letter-spacing:0.06em; }
+.badge-purple { background:rgba(124,58,237,0.2); color:#a855f7; border:1px solid rgba(124,58,237,0.3); }
+.badge-green { background:rgba(16,185,129,0.15); color:var(--green); border:1px solid rgba(16,185,129,0.3); }
+.updated { color:var(--muted); font-size:0.75rem; }
+
+/* NAV */
+.nav { display:flex; gap:0; padding:0 32px; border-bottom:1px solid var(--border); overflow-x:auto; background:var(--card); }
+.nav-btn { padding:14px 20px; border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:0.85rem; font-weight:600; border-bottom:2px solid transparent; transition:all .2s; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+.nav-btn:hover { color:var(--text); }
+.nav-btn.active { color:white; border-bottom-color:var(--accent2); }
+
+/* MAIN */
+.main { padding:28px 32px; max-width:1400px; }
+.section { display:none; } .section.active { display:block; }
+
+/* STATS BAR */
+.stats-bar { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:28px; }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+.stat-val { font-size:1.5rem; font-weight:900; }
+.stat-lbl { font-size:0.72rem; color:var(--muted); margin-top:4px; }
+
+/* CATEGORY SECTION */
+.cat-block { margin-bottom:40px; }
+.cat-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.cat-icon { font-size:1.6rem; }
+.cat-title { font-size:1.1rem; font-weight:800; }
+.cat-count { font-size:0.75rem; color:var(--muted); margin-left:auto; }
+.cat-line { flex:1; height:1px; background:var(--border); margin-left:12px; }
+
+/* PRODUCT TABLE */
+.prod-table { width:100%; border-collapse:collapse; }
+.prod-table th { text-align:left; font-size:0.72rem; font-weight:700; color:var(--muted); padding:0 14px 10px; letter-spacing:0.06em; text-transform:uppercase; }
+.prod-table tr.prod-row { background:var(--card); border:1px solid var(--border); border-radius:12px; transition:all .2s; }
+.prod-table tr.prod-row:hover { border-color:var(--accent); transform:translateX(2px); }
+.prod-table td { padding:14px; font-size:0.85rem; vertical-align:middle; }
+.prod-table td:first-child { border-radius:12px 0 0 12px; }
+.prod-table td:last-child { border-radius:0 12px 12px 0; }
+.prod-table tr.spacer { height:6px; }
+
+.rank { font-size:1.1rem; font-weight:900; color:var(--muted); width:36px; text-align:center; }
+.rank.top1 { color:#f59e0b; }
+.rank.top2 { color:#94a3b8; }
+.rank.top3 { color:#cd7c3a; }
+
+.prod-name { font-weight:700; font-size:0.9rem; }
+.prod-desc { font-size:0.76rem; color:var(--muted); margin-top:3px; max-width:380px; line-height:1.4; }
+
+.platform-tags { display:flex; gap:3px; }
+.ptag { font-size:0.62rem; font-weight:800; padding:2px 6px; border-radius:4px; }
+.ptag-tt { background:rgba(254,44,85,0.15); color:var(--tiktok); }
+.ptag-ig { background:rgba(225,48,108,0.15); color:#f472b6; }
+.ptag-fb { background:rgba(24,119,242,0.15); color:#60a5fa; }
+
+.metric-chip { display:inline-block; font-size:0.78rem; font-weight:700; padding:4px 10px; border-radius:6px; }
+.chip-green { background:rgba(16,185,129,0.1); color:var(--green); }
+.chip-yellow { background:rgba(245,158,11,0.1); color:var(--yellow); }
+.chip-blue { background:rgba(59,130,246,0.1); color:var(--blue); }
+
+.heat-bar { display:flex; gap:2px; }
+.hdot { width:8px; height:8px; border-radius:50%; background:var(--border); }
+.hdot.on { background:var(--tiktok); }
+.hdot.warm { background:var(--yellow); }
+
+.trend-badge { font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:4px; }
+.trend-up { background:rgba(16,185,129,0.1); color:var(--green); }
+.trend-hot { background:rgba(254,44,85,0.1); color:var(--tiktok); }
+.trend-new { background:rgba(124,58,237,0.1); color:var(--accent2); }
+.trend-stable { background:rgba(107,114,128,0.1); color:var(--muted); }
+
+.links { display:flex; gap:6px; flex-wrap:wrap; }
+.link-btn { font-size:0.72rem; padding:4px 10px; border-radius:6px; text-decoration:none; border:1px solid var(--border); color:var(--muted); transition:all .2s; white-space:nowrap; }
+.link-btn:hover { border-color:var(--accent); color:var(--accent2); background:rgba(124,58,237,0.08); }
+.link-btn.primary { background:var(--accent); border-color:var(--accent); color:white; }
+.link-btn.primary:hover { background:var(--accent2); }
+
+/* FILTER BAR */
+.filter-bar { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
+.search-input { flex:1; min-width:220px; max-width:320px; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:9px 14px; color:var(--text); font-size:0.85rem; }
+.search-input:focus { outline:none; border-color:var(--accent); }
+.search-input::placeholder { color:var(--muted); }
+.filter-pill { padding:7px 14px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; font-size:0.8rem; font-weight:600; transition:all .2s; }
+.filter-pill:hover, .filter-pill.active { background:var(--accent); border-color:var(--accent); color:white; }
+.sort-select { background:var(--card); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:8px; font-size:0.82rem; cursor:pointer; }
+
+/* TOOLS GRID */
+.tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+.tool-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all .2s; }
+.tool-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.tool-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.tool-icon { font-size:1.8rem; }
+.tool-name { font-weight:800; font-size:0.95rem; }
+.tool-price { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+.tool-desc { font-size:0.8rem; color:var(--muted); line-height:1.5; margin-bottom:14px; }
+.tool-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.tool-chip { font-size:0.68rem; padding:3px 8px; border-radius:4px; border:1px solid var(--border); color:var(--muted); }
+.free-chip { border-color:var(--green); color:var(--green); }
+.btn-open { display:inline-block; padding:8px 16px; background:var(--accent); color:white; border-radius:8px; text-decoration:none; font-size:0.8rem; font-weight:700; transition:background .2s; }
+.btn-open:hover { background:var(--accent2); }
+
+/* STRATEGY */
+.strat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:20px; }
+.strat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px; }
+.strat-title { font-size:0.95rem; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.step-list { list-style:none; }
+.step-item { display:flex; gap:10px; margin-bottom:12px; font-size:0.82rem; line-height:1.5; color:var(--muted); }
+.step-num { flex-shrink:0; width:22px; height:22px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; margin-top:1px; }
+.hl { color:var(--text); font-weight:600; }
+.check-list { list-style:none; }
+.check-item { display:flex; gap:8px; padding:9px 0; border-bottom:1px solid var(--border); font-size:0.82rem; color:var(--muted); align-items:flex-start; }
+.check-item:last-child { border-bottom:none; }
+.ci { flex-shrink:0; margin-top:1px; }
+
+/* SIGNALS */
+.sig-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:24px; }
+.sig-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+.sig-icon { font-size:1.6rem; margin-bottom:6px; }
+.sig-title { font-size:0.82rem; font-weight:700; margin-bottom:4px; }
+.sig-desc { font-size:0.73rem; color:var(--muted); line-height:1.4; }
+.info-box { background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.25); border-radius:12px; padding:14px 16px; font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+
+/* RESPONSIVE */
+@media(max-width:768px) {
+  .header,.nav,.main { padding-left:16px; padding-right:16px; }
+  .prod-table { display:block; overflow-x:auto; }
+  .prod-desc { max-width:220px; }
+  .strat-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🔥 Viral Product Detector</h1>
+    <p>Top 5 productos ganadores por categoría · Actualizado cada domingo</p>
+  </div>
+  <div class="header-right">
+    <span class="badge badge-purple">DROPSHIPPING</span>
+    <span class="badge badge-green">SHOPIFY READY</span>
+    <span class="updated" id="lastUpdated">Cargando...</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('productos',this)">🛍️ Productos Top</button>
+  <button class="nav-btn" onclick="switchTab('herramientas',this)">🛠️ Herramientas Spy</button>
+  <button class="nav-btn" onclick="switchTab('estrategia',this)">🧠 Estrategia</button>
+  <button class="nav-btn" onclick="switchTab('senales',this)">📡 Señales</button>
+  <button class="nav-btn" onclick="switchTab('bot',this)">🤖 Bot Telegram</button>
+</div>
+
+<div class="main">
+
+<!-- ===== PRODUCTOS ===== -->
+<div id="tab-productos" class="section active">
+
+  <div class="stats-bar" id="statsBar"></div>
+
+  <div class="filter-bar">
+    <input class="search-input" id="searchBox" type="text" placeholder="🔍 Buscar producto, categoría..." oninput="renderAll()">
+    <button class="filter-pill active" onclick="setPlatform('all',this)">Todos</button>
+    <button class="filter-pill" onclick="setPlatform('tiktok',this)">TikTok</button>
+    <button class="filter-pill" onclick="setPlatform('instagram',this)">Instagram</button>
+    <button class="filter-pill" onclick="setPlatform('facebook',this)">Facebook</button>
+    <select class="sort-select" id="sortSelect" onchange="renderAll()">
+      <option value="rank">Ordenar: Ranking</option>
+      <option value="margin">Ordenar: Margen ↓</option>
+      <option value="heat">Ordenar: Calor ↓</option>
+      <option value="price">Ordenar: Precio ↑</option>
+    </select>
+  </div>
+
+  <div id="productsContainer"></div>
+</div>
+
+<!-- ===== HERRAMIENTAS ===== -->
+<div id="tab-herramientas" class="section">
+  <div class="tools-grid" id="toolsGrid"></div>
+</div>
+
+<!-- ===== ESTRATEGIA ===== -->
+<div id="tab-estrategia" class="section">
+  <div class="strat-grid">
+    <div class="strat-card">
+      <div class="strat-title">🎵 TikTok — Paso a paso</div>
+      <ul class="step-list">
+        <li class="step-item"><span class="step-num">1</span><div>Entra en <span class="hl">TikTok Creative Center</span> → sección "Top Products". Filtra por categoría y ordena por CTR.</div></li>
+        <li class="step-item"><span class="step-num">2</span><div>Busca <span class="hl">#TikTokMadeMeBuyIt</span> en la app. Filtra "Esta semana" y ordena por vistas. Busca comentarios "¿Dónde lo compro?"</div></li>
+        <li class="step-item"><span class="step-num">3</span><div>Valida en <span class="hl">Google Trends</span> — curva debe ser ascendente en los últimos 30-90 días.</div></li>
+        <li class="step-item"><span class="step-num">4</span><div>Encuentra proveedor en <span class="hl">CJdropshipping o Zendrop</span>. Calcula margen objetivo: precio venta 4-5x coste.</div></li>
+        <li class="step-item"><span class="step-num">5</span><div>Haz <span class="hl">vídeo orgánico en TikTok</span> antes de pagar ads. Si llega a 10k vistas, escala con TikTok Ads.</div></li>
+        <li class="step-item"><span class="step-num">6</span><div>Pide <span class="hl">pedido de prueba</span> para crear contenido real. El UGC auténtico convierte 3x más que creatividades genéricas.</div></li>
+      </ul>
+    </div>
+    <div class="strat-card">
+      <div class="strat-title">📘 Facebook/Instagram — Paso a paso</div>
+      <ul class="step-list">
+        <li class="step-item"><span class="step-num">1</span><div>Abre <span class="hl">Facebook Ad Library</span>. Busca keywords: "50% off", "limited stock", "as seen on TikTok".</div></li>
+        <li class="step-item"><span class="step-num">2</span><div>Filtra por anuncios activos <span class="hl">últimos 30 días</span>. Anuncio activo >30 días = rentable (nadie paga por lo que no convierte).</div></li>
+        <li class="step-item"><span class="step-num">3</span><div>Visita la página del anunciante. Si tiene <span class="hl">múltiples variantes del mismo anuncio</span>, está en fase de escalado.</div></li>
+        <li class="step-item"><span class="step-num">4</span><div>Usa <span class="hl">SimilarWeb</span> en su tienda para ver tráfico mensual. +50k visitas/mes = producto validado.</div></li>
+        <li class="step-item"><span class="step-num">5</span><div>Diferénciate: <span class="hl">mejor oferta, bundle, garantía</span> o ángulo diferente. Nunca copies exactamente.</div></li>
+        <li class="step-item"><span class="step-num">6</span><div>Arranca con <span class="hl">€20-30/día en FB Ads</span>. Si en 3 días no hay ventas, cambia creative. Si hay ROAS >2x, escala.</div></li>
+      </ul>
+    </div>
+    <div class="strat-card">
+      <div class="strat-title">✅ Checklist producto ganador</div>
+      <ul class="check-list">
+        <li class="check-item"><span class="ci">✅</span><div>Margen bruto >60% (precio = 4-5x coste proveedor)</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Tiene "wow factor" — soluciona un problema o genera sorpresa visual</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>No se encuentra fácilmente en tiendas físicas ni Amazon a la vista</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Proveedor con >4.5★ y al menos 500 pedidos completados</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Precio de venta €15-€60 (zona de impulso sin fricción de decisión)</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Competidores activos en FB Ads (valida demanda, no inventes mercado)</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Google Trends con curva ascendente en últimos 90 días</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Demostrable en vídeo de 15-30s (crítico para TikTok/Reels)</div></li>
+        <li class="check-item"><span class="ci">✅</span><div>Shipping <15 días a mercado objetivo (clave para reviews)</div></li>
+      </ul>
+    </div>
+    <div class="strat-card">
+      <div class="strat-title">🚀 Montar tienda Shopify en 48h</div>
+      <ul class="step-list">
+        <li class="step-item"><span class="step-num">1</span><div><span class="hl">One-product store</span>: 1 producto por tienda. Convierte 2-3x más que catálogos. Dominio €10 específico del producto.</div></li>
+        <li class="step-item"><span class="step-num">2</span><div>Instala <span class="hl">DSers o AutoDS</span> → importa producto desde AliExpress en un clic, con variantes y fotos.</div></li>
+        <li class="step-item"><span class="step-num">3</span><div>Tema <span class="hl">Dawn (gratis)</span> o Debutify. Velocidad >80 en PageSpeed. Cada segundo de carga = -7% conversión.</div></li>
+        <li class="step-item"><span class="step-num">4</span><div>Añade <span class="hl">reviews con fotos</span> desde el proveedor: plugin Loox o Ali Reviews. Mínimo 20 reviews antes de lanzar.</div></li>
+        <li class="step-item"><span class="step-num">5</span><div><span class="hl">Shopify Payments + PayPal</span> desde día 1. Añade Apple Pay / Google Pay para móvil (60% tráfico).</div></li>
+        <li class="step-item"><span class="step-num">6</span><div>Email post-compra con <span class="hl">Klaviyo</span>: confirmación + upsell a los 3 días + review a los 14. Automatiza desde el inicio.</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SEÑALES ===== -->
+<div id="tab-senales" class="section">
+  <div class="info-box">
+    ⚡ <strong>Regla de oro:</strong> En TikTok, un producto pasa de desconocido a saturado en <strong>2-3 semanas</strong>. En Facebook/Instagram el ciclo es 4-8 semanas. Actúa en la fase de crecimiento, no cuando ya es trending masivo.
+  </div>
+  <div class="sig-grid">
+    <div class="sig-card"><div class="sig-icon">📈</div><div class="sig-title">Anuncio activo +30 días</div><div class="sig-desc">Nadie paga por un anuncio que no convierte. +30 días = rentable con seguridad.</div></div>
+    <div class="sig-card"><div class="sig-icon">🔥</div><div class="sig-title">#TikTokMadeMeBuyIt</div><div class="sig-desc">Filtra "Esta semana" y +100k vistas. Demanda orgánica validada sin coste.</div></div>
+    <div class="sig-card"><div class="sig-icon">💬</div><div class="sig-title">"¿Dónde lo compro?"</div><div class="sig-desc">El comentario más valioso de TikTok. Señal directa de intención de compra.</div></div>
+    <div class="sig-card"><div class="sig-icon">📦</div><div class="sig-title">5-15 sellers activos</div><div class="sig-desc">Hay mercado real pero no saturación. Menos de 5 = no validado. Más de 30 = tarde.</div></div>
+    <div class="sig-card"><div class="sig-icon">🔍</div><div class="sig-title">Google Trends ↗</div><div class="sig-desc">Curva ascendente 30-90 días. Evita picos históricos ya decrecientes.</div></div>
+    <div class="sig-card"><div class="sig-icon">⭐</div><div class="sig-title">AliExpress >500 orders</div><div class="sig-desc">+500 pedidos con 4.7★ = producto que llega, funciona y gusta al cliente.</div></div>
+    <div class="sig-card"><div class="sig-icon">🎬</div><div class="sig-title">UGC espontáneo</div><div class="sig-desc">Gente compartiendo sin que la paguen. El "wow factor" genuino más valioso.</div></div>
+    <div class="sig-card"><div class="sig-icon">🛒</div><div class="sig-title">Amazon rank subiendo</div><div class="sig-desc">Rank mejorando semana a semana en su categoría = demanda sostenida creciente.</div></div>
+    <div class="sig-card"><div class="sig-icon">📱</div><div class="sig-title">Reels con alto ER</div><div class="sig-desc">Engagement Rate >5% en Reels del producto. Señal de audiencia receptiva.</div></div>
+    <div class="sig-card"><div class="sig-icon">🌍</div><div class="sig-title">Ya viral en otro país</div><div class="sig-desc">Producto explosivo en USA/UK pero aún no en España/Latam = ventana de oportunidad.</div></div>
+  </div>
+
+  <div class="strat-card" style="margin-top:20px">
+    <div class="strat-title">🔗 Fuentes gratuitas de investigación</div>
+    <ul class="check-list">
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://www.facebook.com/ads/library" target="_blank" style="color:#a855f7">Facebook Ad Library</a></strong> — Todos los anuncios activos de Facebook e Instagram. La herramienta gratuita más potente del mercado.</div></li>
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://ads.tiktok.com/business/creativecenter" target="_blank" style="color:#a855f7">TikTok Creative Center</a></strong> — Top productos, hashtags trending y mejores creatividades con datos de CTR reales.</div></li>
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://trends.google.com" target="_blank" style="color:#a855f7">Google Trends</a></strong> — Valida si el interés está creciendo o cayendo antes de invertir en stock o ads.</div></li>
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://www.amazon.com/gp/bestsellers" target="_blank" style="color:#a855f7">Amazon Best Sellers</a></strong> — Confirma demanda real en el mayor marketplace del mundo por categoría.</div></li>
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://www.aliexpress.com" target="_blank" style="color:#a855f7">AliExpress</a></strong> — Verifica disponibilidad de proveedor, precio real y valoraciones antes de vender.</div></li>
+      <li class="check-item"><span class="ci">🆓</span><div><strong><a href="https://www.similarweb.com" target="_blank" style="color:#a855f7">SimilarWeb</a></strong> — Analiza el tráfico de tiendas competidoras. Gratis hasta 5 búsquedas/día.</div></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== BOT TELEGRAM ===== -->
+<div id="tab-bot" class="section">
+  <div class="info-box">
+    🤖 <strong>Cómo funciona el bot:</strong> Cada domingo a las 9:00h, el script Python actualiza automáticamente el dashboard con los productos más virales de la semana y te manda un resumen con el <strong>Top 5</strong> directamente a Telegram.
+  </div>
+  <div class="strat-grid">
+    <div class="strat-card">
+      <div class="strat-title">⚙️ Configuración inicial (5 min)</div>
+      <ul class="step-list">
+        <li class="step-item"><span class="step-num">1</span><div>Abre Telegram y busca <span class="hl">@BotFather</span>. Escribe <code style="background:var(--card2);padding:2px 6px;border-radius:4px">/newbot</code></div></li>
+        <li class="step-item"><span class="step-num">2</span><div>Ponle nombre (ej: "Viral Products Bot") y username (ej: <span class="hl">viralproducts_bot</span>). BotFather te dará el <strong>Token</strong>.</div></li>
+        <li class="step-item"><span class="step-num">3</span><div>Busca <span class="hl">@userinfobot</span>, escríbele cualquier cosa → te responde con tu <strong>Chat ID</strong> (número).</div></li>
+        <li class="step-item"><span class="step-num">4</span><div>Abre el archivo <span class="hl">viral_bot.py</span> de tu carpeta y pon tu Token y Chat ID en las líneas indicadas.</div></li>
+        <li class="step-item"><span class="step-num">5</span><div>Instala dependencias: abre Terminal y ejecuta <code style="background:var(--card2);padding:2px 6px;border-radius:4px">pip install requests schedule</code></div></li>
+        <li class="step-item"><span class="step-num">6</span><div>Ejecuta el bot: <code style="background:var(--card2);padding:2px 6px;border-radius:4px">python viral_bot.py</code>. El próximo domingo a las 9h recibirás tu primer resumen.</div></li>
+      </ul>
+    </div>
+    <div class="strat-card">
+      <div class="strat-title">📱 Qué recibirás cada domingo</div>
+      <div style="background:var(--card2);border-radius:10px;padding:16px;font-size:0.82rem;line-height:1.7;color:var(--text);font-family:monospace;">
+        🔥 <strong>TOP 5 PRODUCTOS VIRALES</strong><br>
+        Semana del 1 Jun 2026<br><br>
+        1️⃣ <strong>Red Light Therapy Mask</strong><br>
+        &nbsp;&nbsp;&nbsp;💰 Margen: 68% | Precio: €65<br>
+        &nbsp;&nbsp;&nbsp;📊 Plataformas: TikTok, IG<br>
+        &nbsp;&nbsp;&nbsp;🔥 Calor: ████░<br>
+        &nbsp;&nbsp;&nbsp;🔗 <a href="#" style="color:#a855f7">Ver producto</a><br><br>
+        2️⃣ <strong>Galaxy Projector Pro</strong><br>
+        &nbsp;&nbsp;&nbsp;💰 Margen: 72% | Precio: €45<br>
+        &nbsp;&nbsp;&nbsp;...<br><br>
+        📊 Dashboard completo: <a href="#" style="color:#a855f7">abrir →</a><br>
+        ⏰ Próxima actualización: Dom 8 Jun
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;">
+    <div style="font-size:0.9rem;font-weight:700;margin-bottom:8px;">📁 Archivos del proyecto</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;font-size:0.82rem;color:var(--muted);">
+      <div style="background:var(--card2);border-radius:8px;padding:12px;">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px;">📄 viral-product-dashboard.html</div>
+        <div>Este dashboard. Actualizado automáticamente cada domingo.</div>
+      </div>
+      <div style="background:var(--card2);border-radius:8px;padding:12px;">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px;">🐍 viral_bot.py</div>
+        <div>Script Python. Añade tu token y chat ID para activar el bot de Telegram.</div>
+      </div>
+      <div style="background:var(--card2);border-radius:8px;padding:12px;">
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px;">📊 products_data.json</div>
+        <div>Base de datos de productos. Se actualiza automáticamente cada semana.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const CATEGORIES = [
+  {
+    id:"belleza", icon:"💄", name:"Belleza & Skincare",
+    products:[
+      { rank:1, name:"Red Light Therapy Face Mask", desc:"Mascarilla LED de luz roja que replica tratamientos de spa de €150. Viral entre skincare influencers. Contenido demostración = millones de vistas.", platforms:["tiktok","instagram"], margin:68, cost:"€18-25", price:"€59-89", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-red-light-therapy-mask.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=red+light+therapy+mask"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=red+light+therapy+mask"}] },
+      { rank:2, name:"Serum Peeling Glass Skin", desc:"Sérum exfoliante para el efecto 'glass skin'. Tendencia beauty masiva en 2026. Coste bajo, margen altísimo y altísima repetición de compra.", platforms:["tiktok","instagram","facebook"], margin:82, cost:"€4-5", price:"€22-32", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-peeling-serum.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=glass+skin+serum"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=glass+skin+serum"}] },
+      { rank:3, name:"Gua Sha + Roller Set", desc:"Set de piedra gua sha y rodillo facial. Tendencia estable con alto volumen. Bundle de bajo coste que se vende solo con vídeo de masaje facial.", platforms:["tiktok","instagram"], margin:75, cost:"€3-6", price:"€18-28", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-gua-sha-roller-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=gua+sha+roller+set"},{label:"TikTok",url:"https://www.tiktok.com/search?q=gua+sha+routine"}] },
+      { rank:4, name:"Cepillo Limpiador Silicona Facial", desc:"Cepillo sónico de silicona para limpieza facial profunda. Demostración visual impactante. Bajo coste de envío y alto margen percibido.", platforms:["instagram","facebook"], margin:71, cost:"€5-8", price:"€22-35", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-silicone-facial-cleansing-brush.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=silicone+facial+brush"}] },
+      { rank:5, name:"Period Heat Pad Wearable", desc:"Cinta térmica menstrual discreta que se lleva debajo de la ropa. Viral en TikTok con comentarios 'life changer'. Nicho femenino muy fiel.", platforms:["tiktok","instagram"], margin:70, cost:"€6-9", price:"€24-38", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-menstrual-heating-pad-wearable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=period+heat+pad"}] }
+    ]
+  },
+  {
+    id:"hogar", icon:"🏠", name:"Hogar & Cocina",
+    products:[
+      { rank:1, name:"SnackSpin Rotating Tray", desc:"Bandeja giratoria en forma de flor con compartimentos. Abre como un loto. Viral en vídeos de picoteo y hosting. Imposible no grabarla.", platforms:["tiktok","facebook"], margin:68, cost:"€7-10", price:"€24-32", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-rotating-snack-tray.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=snack+tray+flower"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=rotating+snack+tray"}] },
+      { rank:2, name:"Side-Opening Salad Jar", desc:"Tarro con tapa lateral para añadir aliño sin volcar. Se vende solo con un vídeo de 15s. Nicho healthy & meal prep. Alta recompra.", platforms:["tiktok","instagram"], margin:70, cost:"€5-7", price:"€18-25", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-salad-jar-side-opening.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=salad+jar+side+opening"}] },
+      { rank:3, name:"Mini Dishwasher Portable", desc:"Mini lavavajillas de sobremesa para solteros y pisos pequeños. Tendencia 2026 enorme. Ticket alto que justifica ads pagados. Demo obvia.", platforms:["tiktok","facebook"], margin:55, cost:"€45-65", price:"€119-159", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-portable-mini-dishwasher.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=mini+dishwasher+portable"}] },
+      { rank:4, name:"Vaso Térmico Stanley Dupe", desc:"Vaso térmico de doble pared estilo Stanley. Mercado enorme, margen excelente. Personalización con colores = diferenciación sencilla.", platforms:["instagram","facebook"], margin:72, cost:"€8-12", price:"€32-45", heat:4, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-tumbler-thermal-cup.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=thermal+tumbler+cup"}] },
+      { rank:5, name:"Himalayan Salt Lamp Dimmer", desc:"Lámpara de sal del Himalaya con regulador de intensidad integrado. Ambiente viral en vídeos de habitación/relax. Precio accesible, shipping económico.", platforms:["instagram","facebook"], margin:65, cost:"€9-13", price:"€28-40", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-himalayan-salt-lamp.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=himalayan+salt+lamp"}] }
+    ]
+  },
+  {
+    id:"gadgets", icon:"⚡", name:"Gadgets & Tech",
+    products:[
+      { rank:1, name:"LED Key Clicker Keychain", desc:"Fidget gadget con efecto teclado mecánico y LED que se engancha al llavero. Viral en ASMR y vídeos 'oddly satisfying'. Coste mínimo, margen máximo.", platforms:["tiktok","instagram"], margin:72, cost:"€1.5-2.5", price:"€12-16", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-led-key-clicker-keychain.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=led+key+clicker"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=led+clicker+keychain"}] },
+      { rank:2, name:"Gafas de Sol Smart OptiShade", desc:"Gafas con cristal que cambia tonalidad al instante con un toque. Alto wow-factor. Ideal para contenido outdoor y lifestyle de alto valor.", platforms:["instagram","facebook"], margin:75, cost:"€10-15", price:"€45-65", heat:5, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-tinted-sunglasses.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=smart+sunglasses"}] },
+      { rank:3, name:"Hydrogen Water Generator", desc:"Generador de agua con hidrógeno. Tendencia biohacker 2026. Influencers de salud lo impulsan masivamente. Ticket alto = budget para ads.", platforms:["tiktok","facebook"], margin:62, cost:"€18-25", price:"€55-80", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-hydrogen-water-generator.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=hydrogen+water+bottle"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=hydrogen+water"}] },
+      { rank:4, name:"4-in-1 Travel Pump Bottle", desc:"Bote de viaje con 4 compartimentos bomba independientes. TSA-friendly. Demostración visual perfecta para Reels. Producto recurrente por viajeros.", platforms:["instagram","tiktok","facebook"], margin:65, cost:"€3-4.5", price:"€16-25", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-4-in-1-travel-pump-bottle.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=travel+pump+bottle"}] },
+      { rank:5, name:"Luz Anillo LED Clip Selfie", desc:"Luz de relleno LED con clip para móvil. Alta demanda constante en beauty y content creation. Precio bajo = alto volumen. Bundle posible con trípode.", platforms:["tiktok","instagram"], margin:78, cost:"€2-4", price:"€12-18", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-ring-light-clip-phone.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=ring+light+clip+selfie"}] }
+    ]
+  },
+  {
+    id:"moda", icon:"👗", name:"Moda & Accesorios",
+    products:[
+      { rank:1, name:"Hoodie Doble (Parejas)", desc:"Sudadera XXL con dos capuchas para llevar a dos personas. Viral entre parejas Gen Z. Contenido 'couple goals' con millones de vistas. Alta demanda emocional.", platforms:["tiktok","instagram"], margin:65, cost:"€14-18", price:"€45-65", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-couple-double-hoodie.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=couple+hoodie+double"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=couple+hoodie"}] },
+      { rank:2, name:"Labubu / Figuras Colección", desc:"Coleccionables vinilo (Labubu, Sonny Angel, Sylvanian). Unboxing = millones de vistas. Alta repetición de compra. Comunidad muy activa.", platforms:["tiktok","instagram"], margin:60, cost:"€8-15", price:"€22-45", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-labubu-figure.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=labubu+unboxing"}] },
+      { rank:3, name:"Bolso Crochet Handmade Look", desc:"Bolsos estilo crochet artesanal (producción industrial). Tendencia boho 2026. El 'hecho a mano' perceived value multiplica el precio posible.", platforms:["instagram","facebook"], margin:73, cost:"€6-10", price:"€28-42", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-crochet-bag-handmade.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=crochet+bag+handmade"}] },
+      { rank:4, name:"Anillo Ajustable Acero Inox", desc:"Anillos minimalistas en acero inoxidable dorado/plateado. Sin alérgicos, no se oxida. Pack de 3-5 anillos = ticket más alto. Fácil de hacer viral.", platforms:["instagram","tiktok"], margin:80, cost:"€1.5-3", price:"€14-22", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-stainless-steel-adjustable-ring.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=adjustable+stainless+steel+ring"}] },
+      { rank:5, name:"Sneakers Chunky Pastel", desc:"Zapatillas chunky en tonos pastel. Tendencia footwear 2026. Contenido OOTD viral en TikTok. Ticket alto pero margen excelente con proveedor directo.", platforms:["tiktok","instagram"], margin:62, cost:"€18-25", price:"€55-80", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-chunky-sneakers-pastel.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=chunky+sneakers+pastel"}] }
+    ]
+  },
+  {
+    id:"salud", icon:"💪", name:"Salud & Fitness",
+    products:[
+      { rank:1, name:"Posture Corrector Smart", desc:"Corrector de postura con vibración cuando te encorvos. Viral en vídeos 'officevlog' y trabajo remoto. Nicho de dolor real = alta conversión.", platforms:["tiktok","facebook"], margin:67, cost:"€8-12", price:"€28-40", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-posture-corrector.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=posture+corrector"},{label:"TikTok",url:"https://www.tiktok.com/search?q=posture+corrector+review"}] },
+      { rank:2, name:"Portable Cold Plunge Tub", desc:"Bañera inflable para ice bath. Trend biohacker 2026 impulsado por influencers de productividad y deporte. Ticket alto = alto margen absoluto.", platforms:["tiktok","facebook"], margin:55, cost:"€35-50", price:"€89-130", heat:4, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cold-plunge-tub-inflatable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cold+plunge+ice+bath"}] },
+      { rank:3, name:"Resistance Bands Set Pro", desc:"Set de bandas de resistencia con diferentes niveles. Demanda constante, nicho fitness enorme. Bundle barato con bolsa = valor percibido alto.", platforms:["tiktok","instagram","facebook"], margin:74, cost:"€5-8", price:"€22-32", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-resistance-bands-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=resistance+bands+set"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=resistance+bands"}] },
+      { rank:4, name:"Accesorios Pádel Bundle", desc:"Pack overgrips + protector + funda para pala. Mercado en explosión España/Latam. Bundle aumenta AOV. Poco competido en Facebook Ads.", platforms:["facebook","instagram"], margin:62, cost:"€8-13", price:"€24-38", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-padel-accessories.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=padel+accesorios"}] },
+      { rank:5, name:"Massage Gun Mini Pro", desc:"Pistola de masaje compacta para bolso. Versión mini viral frente a modelos grandes. Demostración en músculo = vídeo perfecto. Alta recompra como regalo.", platforms:["tiktok","instagram","facebook"], margin:65, cost:"€12-18", price:"€38-55", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-mini-massage-gun.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=mini+massage+gun"}] }
+    ]
+  },
+  {
+    id:"mascotas", icon:"🐾", name:"Mascotas",
+    products:[
+      { rank:1, name:"AirTag Collar GPS Perro", desc:"Collar compatible con AirTag estilo cuero de diseño. Millones de dueños de perros en mercado. Preocupación por perder mascota = alta conversión emocional.", platforms:["tiktok","instagram","facebook"], margin:68, cost:"€8-12", price:"€28-42", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-collar-airtag.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+collar+airtag"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+collar+airtag"}] },
+      { rank:2, name:"Cat Water Fountain Smart", desc:"Fuente de agua para gatos con filtro y flujo silencioso. Propietarios de gatos = compradores impulsivos para sus mascotas. Reviews = contenido viral.", platforms:["tiktok","instagram"], margin:65, cost:"€10-15", price:"€32-48", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cat-water-fountain.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cat+water+fountain"}] },
+      { rank:3, name:"Lick Mat Enriquecimiento", desc:"Tapete de lamer para perros/gatos con peanut butter. Vídeos de mascotas + tapete = algoritmo favorito. Precio bajo = regalo perfecto.", platforms:["tiktok","instagram"], margin:75, cost:"€3-5", price:"€14-22", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-lick-mat-dog.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=lick+mat+dog"},{label:"TikTok",url:"https://www.tiktok.com/search?q=lick+mat+dog"}] },
+      { rank:4, name:"Dog Paw Cleaner Cup", desc:"Limpiador de patas de perro post-paseo. Problema real con solución obvia. Demo = agua sucia vs agua limpia en vídeo = altísimo CTR.", platforms:["tiktok","facebook"], margin:70, cost:"€4-7", price:"€16-25", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-paw-cleaner.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=dog+paw+cleaner"}] },
+      { rank:5, name:"Dog Cooling Mat Premium", desc:"Colchoneta refrescante para perros en verano. Estacional pero con pico enorme (mayo-agosto). Compra impulsiva de propietarios preocupados por el calor.", platforms:["facebook","instagram"], margin:62, cost:"€8-12", price:"€24-35", heat:3, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-cooling-mat.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+cooling+mat"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+cooling+mat"}] }
+    ]
+  }
+];
+
+const TOOLS = [
+  { icon:"🔍", name:"Facebook Ad Library", price:"100% Gratuito", desc:"Espía todos los anuncios activos de Facebook e Instagram. Busca por keyword y filtra por fecha de inicio — anuncio activo >30 días = rentable.", tags:["Facebook","Instagram","Gratis","Anuncios activos"], free:true, url:"https://www.facebook.com/ads/library" },
+  { icon:"🎵", name:"TikTok Creative Center", price:"100% Gratuito", desc:"Top productos trending, mejores creatividades, hashtags en ascenso y CTR real de los mejores anuncios TikTok. Sección 'Top Products' es oro puro.", tags:["TikTok","Gratis","Top Productos","CTR"], free:true, url:"https://ads.tiktok.com/business/creativecenter" },
+  { icon:"💜", name:"Minea", price:"Desde €49/mes · Prueba gratis", desc:"+200M anuncios de Facebook, TikTok, Instagram y Pinterest. Detecta qué tiendas Shopify están escalando y qué productos llevan semanas activos.", tags:["Multi-plataforma","Shopify detector","Histórico"], free:false, url:"https://www.minea.com" },
+  { icon:"🎯", name:"PiPiADS", price:"Desde €77/mes · 3 días gratis", desc:"Líder para TikTok Ads. Seguimiento de productos a nivel individual, detección de tiendas Shopify y alertas de nuevos ganadores semanales.", tags:["TikTok","Shopify","Product tracking"], free:false, url:"https://www.pipiads.com" },
+  { icon:"📊", name:"Google Trends", price:"100% Gratuito", desc:"Valida si la tendencia sube o ya cae antes de invertir. Compara keywords relacionadas y detecta estacionalidad. Úsalo siempre como validación final.", tags:["Gratis","Validación","Tendencias"], free:true, url:"https://trends.google.com" },
+  { icon:"🔎", name:"SimilarWeb", price:"Freemium · 5 consultas/día gratis", desc:"Analiza el tráfico de cualquier tienda Shopify de la competencia. Ver de dónde viene su tráfico (FB/TikTok/SEO) para replicar su estrategia.", tags:["Competidores","Tráfico web","Shopify"], free:true, url:"https://www.similarweb.com" },
+  { icon:"🟠", name:"Adligator", price:"Desde €29/mes", desc:"Especializado en Facebook e Instagram Ads con los filtros más avanzados. Más barato que AdSpy. Ideal para empezar con presupuesto limitado.", tags:["Facebook","Instagram","Filtros avanzados"], free:false, url:"https://adligator.com" },
+  { icon:"🛒", name:"Sell The Trend", price:"Desde €39/mes · 7 días gratis", desc:"All-in-one: detecta productos virales, conecta proveedores y analiza competidores. Ideal para empezar desde cero con todo en un solo lugar.", tags:["Multi-plataforma","Proveedores","All-in-one"], free:false, url:"https://www.sellthetrend.com" }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentPlatform = 'all';
+
+// ============================================================
+// RENDER PRODUCTS
+// ============================================================
+function renderAll() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let html = '';
+  let totalProducts = 0;
+
+  CATEGORIES.forEach(cat => {
+    let products = cat.products.filter(p => {
+      const matchPlatform = currentPlatform === 'all' || p.platforms.includes(currentPlatform);
+      const matchSearch = !q || p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || cat.name.toLowerCase().includes(q);
+      return matchPlatform && matchSearch;
+    });
+
+    if (sort === 'margin') products.sort((a,b)=>b.margin-a.margin);
+    else if (sort === 'heat') products.sort((a,b)=>b.heat-a.heat);
+    else if (sort === 'price') products.sort((a,b)=> parseFloat(a.price)-parseFloat(b.price));
+
+    if (products.length === 0) return;
+    totalProducts += products.length;
+
+    html += `<div class="cat-block">
+      <div class="cat-header">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-title">${cat.name}</span>
+        <div class="cat-line"></div>
+        <span class="cat-count">${products.length} producto${products.length!==1?'s':''}</span>
+      </div>
+      <table class="prod-table">
+        <thead><tr>
+          <th>#</th><th>Producto</th><th>Plataformas</th><th>Margen</th><th>Precio venta</th><th>Calor</th><th>Tendencia</th><th>Investigar</th>
+        </tr></thead>
+        <tbody>`;
+
+    products.forEach((p, i) => {
+      const rankClass = i===0?'top1':i===1?'top2':i===2?'top3':'';
+      const rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${p.rank}`;
+      const dots = Array.from({length:5},(_,j)=>`<span class="hdot${j<p.heat?' on':''}"></span>`).join('');
+      const trendMap = {hot:'🔥 Explosivo',up:'📈 Subiendo',new:'✨ Emergente',stable:'⚡ Estable'};
+      const trendClass = {hot:'trend-hot',up:'trend-up',new:'trend-new',stable:'trend-stable'};
+      const ptags = p.platforms.map(pl=>({tiktok:'<span class="ptag ptag-tt">TikTok</span>',instagram:'<span class="ptag ptag-ig">IG</span>',facebook:'<span class="ptag ptag-fb">FB</span>'}[pl])).join('');
+      const links = p.links.map((l,li)=>`<a class="link-btn${li===0?' primary':''}" href="${l.url}" target="_blank">${l.label}</a>`).join('');
+
+      html += `<tr class="prod-row">
+        <td><span class="rank ${rankClass}">${rankEmoji}</span></td>
+        <td><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></td>
+        <td><div class="platform-tags">${ptags}</div></td>
+        <td><span class="metric-chip chip-green">${p.margin}%</span></td>
+        <td><div><span class="metric-chip chip-yellow">${p.price}</span><div style="font-size:0.7rem;color:var(--muted);margin-top:3px">Coste: ${p.cost}</div></div></td>
+        <td><div class="heat-bar">${dots}</div></td>
+        <td><span class="trend-badge ${trendClass[p.trend]}">${trendMap[p.trend]}</span></td>
+        <td><div class="links">${links}</div></td>
+      </tr><tr class="spacer"><td colspan="8"></td></tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+  });
+
+  document.getElementById('productsContainer').innerHTML = html || '<p style="color:var(--muted);padding:20px">No se encontraron productos.</p>';
+  renderStats(totalProducts);
+}
+
+function renderStats(total) {
+  const allProds = CATEGORIES.flatMap(c=>c.products);
+  const avgMargin = Math.round(allProds.reduce((s,p)=>s+p.margin,0)/allProds.length);
+  const hotCount = allProds.filter(p=>p.heat>=5).length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-card"><div class="stat-val" style="color:#a855f7">${CATEGORIES.length}</div><div class="stat-lbl">Categorías</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#10b981">${total}</div><div class="stat-lbl">Productos analizados</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#f59e0b">${avgMargin}%</div><div class="stat-lbl">Margen promedio</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#fe2c55">${hotCount}</div><div class="stat-lbl">🔥 Calor máximo</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#3b82f6">Semanal</div><div class="stat-lbl">Frecuencia update</div></div>
+  `;
+}
+
+function renderTools() {
+  document.getElementById('toolsGrid').innerHTML = TOOLS.map(t=>`
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">${t.icon}</div>
+        <div><div class="tool-name">${t.name}</div><div class="tool-price">${t.price}</div></div>
+      </div>
+      <div class="tool-desc">${t.desc}</div>
+      <div class="tool-chips">
+        ${t.free?'<span class="tool-chip free-chip">✅ GRATIS</span>':''}
+        ${t.tags.map(tag=>`<span class="tool-chip">${tag}</span>`).join('')}
+      </div>
+      <a class="btn-open" href="${t.url}" target="_blank">Abrir →</a>
+    </div>`).join('');
+}
+
+function setPlatform(p, btn) {
+  currentPlatform = p;
+  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Fecha actualización
+const now = new Date();
+document.getElementById('lastUpdated').textContent = `Actualizado: ${now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`;
+
+renderAll();
+renderTools();
+</script>
+</body>
+</html>

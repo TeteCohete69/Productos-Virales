@@ -148,7 +148,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 }
 </style>
 </head>
-<body>
+<body><!-- last-updated:2026-06-07 -->
 
 <div class="header">
   <div>
@@ -158,6 +158,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   <div class="header-right">
     <span class="badge badge-purple">DROPSHIPPING</span>
     <span class="badge badge-green">SHOPIFY READY</span>
+    <span class="badge" style="background:rgba(254,44,85,0.15);color:#fe2c55;border:1px solid rgba(254,44,85,0.3)">🇪🇸 COD ESPAÑA</span>
     <span class="updated" id="lastUpdated">Cargando...</span>
   </div>
 </div>
@@ -183,11 +184,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <button class="filter-pill" onclick="setPlatform('tiktok',this)">TikTok</button>
     <button class="filter-pill" onclick="setPlatform('instagram',this)">Instagram</button>
     <button class="filter-pill" onclick="setPlatform('facebook',this)">Facebook</button>
+    <button class="filter-pill" id="codFilter" onclick="toggleCod(this)" style="border-color:#fe2c55;color:#fe2c55">🇪🇸 Solo COD España</button>
     <select class="sort-select" id="sortSelect" onchange="renderAll()">
       <option value="rank">Ordenar: Ranking</option>
       <option value="margin">Ordenar: Margen ↓</option>
       <option value="heat">Ordenar: Calor ↓</option>
-      <option value="price">Ordenar: Precio ↑</option>
+      <option value="wow">Ordenar: WOW Factor ↓</option>
+      <option value="fb_ads">Ordenar: FB Ads activos ↓</option>
     </select>
   </div>
 
@@ -343,65 +346,70 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 // ============================================================
 // DATA
 // ============================================================
+// Campos nuevos por producto:
+// price_sale: precio venta recomendado España · cost_num: coste proveedor €
+// wow: 1-5 WOW factor visual · cod_ok: apto COD España · amazon: low/medium/high
+// fb_days: días estimados con ads activos en FB Ad Library España
+// cod_note: razón del estado COD
 const CATEGORIES = [
   {
     id:"belleza", icon:"💄", name:"Belleza & Skincare",
     products:[
-      { rank:1, name:"Red Light Therapy Face Mask", desc:"Mascarilla LED de luz roja que replica tratamientos de spa de €150. Viral entre skincare influencers. Contenido demostración = millones de vistas.", platforms:["tiktok","instagram"], margin:68, cost:"€18-25", price:"€59-89", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-red-light-therapy-mask.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=red+light+therapy+mask"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=red+light+therapy+mask"}] },
-      { rank:2, name:"Serum Peeling Glass Skin", desc:"Sérum exfoliante para el efecto 'glass skin'. Tendencia beauty masiva en 2026. Coste bajo, margen altísimo y altísima repetición de compra.", platforms:["tiktok","instagram","facebook"], margin:82, cost:"€4-5", price:"€22-32", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-peeling-serum.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=glass+skin+serum"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=glass+skin+serum"}] },
-      { rank:3, name:"Gua Sha + Roller Set", desc:"Set de piedra gua sha y rodillo facial. Tendencia estable con alto volumen. Bundle de bajo coste que se vende solo con vídeo de masaje facial.", platforms:["tiktok","instagram"], margin:75, cost:"€3-6", price:"€18-28", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-gua-sha-roller-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=gua+sha+roller+set"},{label:"TikTok",url:"https://www.tiktok.com/search?q=gua+sha+routine"}] },
-      { rank:4, name:"Cepillo Limpiador Silicona Facial", desc:"Cepillo sónico de silicona para limpieza facial profunda. Demostración visual impactante. Bajo coste de envío y alto margen percibido.", platforms:["instagram","facebook"], margin:71, cost:"€5-8", price:"€22-35", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-silicone-facial-cleansing-brush.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=silicone+facial+brush"}] },
-      { rank:5, name:"Period Heat Pad Wearable", desc:"Cinta térmica menstrual discreta que se lleva debajo de la ropa. Viral en TikTok con comentarios 'life changer'. Nicho femenino muy fiel.", platforms:["tiktok","instagram"], margin:70, cost:"€6-9", price:"€24-38", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-menstrual-heating-pad-wearable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=period+heat+pad"}] }
+      { rank:1, name:"Red Light Therapy Face Mask", desc:"Mascarilla LED de luz roja que replica tratamientos de spa. Viral entre skincare influencers. Contenido demostración = millones de vistas.", platforms:["tiktok","instagram"], margin:68, cost:"€18-25", cost_num:22, price:"€59-89", price_sale:69, heat:5, trend:"hot", wow:4, cod_ok:false, amazon:"medium", fb_days:45, cod_note:"Precio alto para COD — mejor con tarjeta", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-red-light-therapy-mask.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=red+light+therapy+mask"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=red+light+therapy+mask"}] },
+      { rank:2, name:"Serum Peeling Glass Skin", desc:"Sérum exfoliante para el efecto glass skin. Tendencia beauty masiva en 2026. Coste bajo, margen altísimo y alta repetición de compra.", platforms:["tiktok","instagram","facebook"], margin:82, cost:"€4-5", cost_num:5, price:"€22-32", price_sale:29, heat:5, trend:"hot", wow:3, cod_ok:false, amazon:"high", fb_days:90, cod_note:"Precio bajo + alta visibilidad Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-peeling-serum.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=glass+skin+serum"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=glass+skin+serum"}] },
+      { rank:3, name:"Gua Sha + Roller Set", desc:"Set de piedra gua sha y rodillo facial. Tendencia estable con alto volumen. Bundle de bajo coste que se vende solo con vídeo de masaje facial.", platforms:["tiktok","instagram"], margin:75, cost:"€3-6", cost_num:6, price:"€18-28", price_sale:25, heat:4, trend:"up", wow:2, cod_ok:false, amazon:"high", fb_days:120, cod_note:"Saturado en Amazon, precio insuficiente", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-gua-sha-roller-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=gua+sha+roller+set"},{label:"TikTok",url:"https://www.tiktok.com/search?q=gua+sha+routine"}] },
+      { rank:4, name:"Cepillo Limpiador Silicona Facial", desc:"Cepillo sónico de silicona para limpieza facial profunda. Demostración visual impactante. Bajo coste de envío y alto margen percibido.", platforms:["instagram","facebook"], margin:71, cost:"€5-8", cost_num:10, price:"€22-35", price_sale:35, heat:3, trend:"stable", wow:3, cod_ok:false, amazon:"medium", fb_days:60, cod_note:"Precio límite; margen ajustado con COD fees", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-silicone-facial-cleansing-brush.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=silicone+facial+brush"}] },
+      { rank:5, name:"Period Heat Pad Wearable", desc:"Cinta térmica menstrual discreta que se lleva debajo de la ropa. Viral en TikTok con comentarios 'life changer'. Nicho femenino muy fiel.", platforms:["tiktok","instagram"], margin:70, cost:"€6-9", cost_num:11, price:"€24-38", price_sale:38, heat:4, trend:"new", wow:4, cod_ok:false, amazon:"low", fb_days:20, cod_note:"Necesita subir a €42+ para COD viable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-menstrual-heating-pad-wearable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=period+heat+pad"}] }
     ]
   },
   {
     id:"hogar", icon:"🏠", name:"Hogar & Cocina",
     products:[
-      { rank:1, name:"SnackSpin Rotating Tray", desc:"Bandeja giratoria en forma de flor con compartimentos. Abre como un loto. Viral en vídeos de picoteo y hosting. Imposible no grabarla.", platforms:["tiktok","facebook"], margin:68, cost:"€7-10", price:"€24-32", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-rotating-snack-tray.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=snack+tray+flower"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=rotating+snack+tray"}] },
-      { rank:2, name:"Side-Opening Salad Jar", desc:"Tarro con tapa lateral para añadir aliño sin volcar. Se vende solo con un vídeo de 15s. Nicho healthy & meal prep. Alta recompra.", platforms:["tiktok","instagram"], margin:70, cost:"€5-7", price:"€18-25", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-salad-jar-side-opening.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=salad+jar+side+opening"}] },
-      { rank:3, name:"Mini Dishwasher Portable", desc:"Mini lavavajillas de sobremesa para solteros y pisos pequeños. Tendencia 2026 enorme. Ticket alto que justifica ads pagados. Demo obvia.", platforms:["tiktok","facebook"], margin:55, cost:"€45-65", price:"€119-159", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-portable-mini-dishwasher.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=mini+dishwasher+portable"}] },
-      { rank:4, name:"Vaso Térmico Stanley Dupe", desc:"Vaso térmico de doble pared estilo Stanley. Mercado enorme, margen excelente. Personalización con colores = diferenciación sencilla.", platforms:["instagram","facebook"], margin:72, cost:"€8-12", price:"€32-45", heat:4, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-tumbler-thermal-cup.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=thermal+tumbler+cup"}] },
-      { rank:5, name:"Himalayan Salt Lamp Dimmer", desc:"Lámpara de sal del Himalaya con regulador de intensidad integrado. Ambiente viral en vídeos de habitación/relax. Precio accesible, shipping económico.", platforms:["instagram","facebook"], margin:65, cost:"€9-13", price:"€28-40", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-himalayan-salt-lamp.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=himalayan+salt+lamp"}] }
+      { rank:1, name:"Cortador Verduras 5-en-1 con Recogedor", desc:"Cortador multifuncional con recogedor integrado. Demo antes/después brutal — corte perfecto instantáneo. No visible en Amazon España. WOW máximo.", platforms:["tiktok","facebook"], margin:75, cost:"€7-10", cost_num:9, price:"€35-49", price_sale:45, heat:5, trend:"hot", wow:5, cod_ok:true, amazon:"low", fb_days:55, cod_note:"✅ Precio ideal €45, margen >70%, WOW 5/5", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-vegetable-cutter-5-in-1.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=vegetable+cutter+5+in+1"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=vegetable+cutter+slicer"}] },
+      { rank:2, name:"Rodillo Limpiador Ropa Eléctrico", desc:"Quitapelusas eléctrico con demostración visual impactante. Antes/después instantáneo. No en Amazon España con buenas reviews.", platforms:["tiktok","facebook"], margin:72, cost:"€9-13", cost_num:11, price:"€38-52", price_sale:45, heat:4, trend:"up", wow:5, cod_ok:true, amazon:"low", fb_days:30, cod_note:"✅ Demo antes/después brutal, precio óptimo COD", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-electric-lint-remover.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=electric+lint+remover"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=electric+lint+remover"}] },
+      { rank:3, name:"Organizador Magnético 360° Frigorífico", desc:"Organizador giratorio para interior de frigorífico. Contenido 'satisfying organization' con millones de vistas. No disponible en Amazon España.", platforms:["tiktok","instagram"], margin:68, cost:"€9-13", cost_num:11, price:"€35-48", price_sale:42, heat:4, trend:"up", wow:4, cod_ok:true, amazon:"low", fb_days:25, cod_note:"✅ Satisfying content, buen margen, sin Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-magnetic-fridge-organizer.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=fridge+organizer+rotating"}] },
+      { rank:4, name:"Vaso Térmico Stanley Dupe", desc:"Vaso térmico doble pared estilo Stanley. Mercado enorme pero saturado en Amazon y FB. Diferenciarse requiere esfuerzo extra.", platforms:["instagram","facebook"], margin:72, cost:"€8-12", cost_num:11, price:"€32-45", price_sale:39, heat:4, trend:"stable", wow:3, cod_ok:false, amazon:"high", fb_days:180, cod_note:"Alta saturación Amazon y FB; mercado quemado", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-tumbler-thermal-cup.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=thermal+tumbler+cup"}] },
+      { rank:5, name:"Mini Dishwasher Portable", desc:"Mini lavavajillas de sobremesa para solteros y pisos pequeños. Tendencia 2026 enorme pero precio demasiado alto para COD.", platforms:["tiktok","facebook"], margin:55, cost:"€45-65", cost_num:62, price:"€119-159", price_sale:139, heat:4, trend:"new", wow:5, cod_ok:false, amazon:"medium", fb_days:15, cod_note:"Precio demasiado alto para pago en efectivo", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-portable-mini-dishwasher.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=mini+dishwasher+portable"}] }
     ]
   },
   {
     id:"gadgets", icon:"⚡", name:"Gadgets & Tech",
     products:[
-      { rank:1, name:"LED Key Clicker Keychain", desc:"Fidget gadget con efecto teclado mecánico y LED que se engancha al llavero. Viral en ASMR y vídeos 'oddly satisfying'. Coste mínimo, margen máximo.", platforms:["tiktok","instagram"], margin:72, cost:"€1.5-2.5", price:"€12-16", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-led-key-clicker-keychain.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=led+key+clicker"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=led+clicker+keychain"}] },
-      { rank:2, name:"Gafas de Sol Smart OptiShade", desc:"Gafas con cristal que cambia tonalidad al instante con un toque. Alto wow-factor. Ideal para contenido outdoor y lifestyle de alto valor.", platforms:["instagram","facebook"], margin:75, cost:"€10-15", price:"€45-65", heat:5, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-tinted-sunglasses.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=smart+sunglasses"}] },
-      { rank:3, name:"Hydrogen Water Generator", desc:"Generador de agua con hidrógeno. Tendencia biohacker 2026. Influencers de salud lo impulsan masivamente. Ticket alto = budget para ads.", platforms:["tiktok","facebook"], margin:62, cost:"€18-25", price:"€55-80", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-hydrogen-water-generator.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=hydrogen+water+bottle"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=hydrogen+water"}] },
-      { rank:4, name:"4-in-1 Travel Pump Bottle", desc:"Bote de viaje con 4 compartimentos bomba independientes. TSA-friendly. Demostración visual perfecta para Reels. Producto recurrente por viajeros.", platforms:["instagram","tiktok","facebook"], margin:65, cost:"€3-4.5", price:"€16-25", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-4-in-1-travel-pump-bottle.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=travel+pump+bottle"}] },
-      { rank:5, name:"Luz Anillo LED Clip Selfie", desc:"Luz de relleno LED con clip para móvil. Alta demanda constante en beauty y content creation. Precio bajo = alto volumen. Bundle posible con trípode.", platforms:["tiktok","instagram"], margin:78, cost:"€2-4", price:"€12-18", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-ring-light-clip-phone.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=ring+light+clip+selfie"}] }
+      { rank:1, name:"Proyector Portátil Mini LED", desc:"Mini proyector de bolsillo. WOW factor máximo — proyectar en cualquier pared. Demostración en 3 segundos. Precio óptimo para COD.", platforms:["tiktok","facebook"], margin:65, cost:"€14-20", cost_num:17, price:"€39-55", price_sale:49, heat:5, trend:"hot", wow:5, cod_ok:true, amazon:"medium", fb_days:70, cod_note:"✅ WOW máximo, precio óptimo; vigilar Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-mini-led-projector-portable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=mini+projector+portable"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=mini+projector+portable"}] },
+      { rank:2, name:"Gafas de Sol Smart con Altavoces", desc:"Gafas con altavoces integrados y conexión Bluetooth. Emergente y sin saturar en Amazon España. Demo lifestyle muy sharable.", platforms:["instagram","facebook"], margin:68, cost:"€15-22", cost_num:18, price:"€45-65", price_sale:55, heat:5, trend:"new", wow:4, cod_ok:true, amazon:"low", fb_days:20, cod_note:"✅ Precio óptimo, diferenciación clara vs Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-audio-sunglasses.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=smart+audio+sunglasses"}] },
+      { rank:3, name:"Hydrogen Water Generator", desc:"Generador de agua con hidrógeno. Tendencia biohacker 2026. Ticket algo alto para COD pero margen absoluto alto.", platforms:["tiktok","facebook"], margin:62, cost:"€18-25", cost_num:25, price:"€55-80", price_sale:65, heat:4, trend:"up", wow:3, cod_ok:false, amazon:"medium", fb_days:40, cod_note:"Precio algo alto para COD; margen ajustado", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-hydrogen-water-generator.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=hydrogen+water+bottle"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=hydrogen+water"}] },
+      { rank:4, name:"4-in-1 Travel Pump Bottle", desc:"Bote de viaje con 4 compartimentos bomba. Demostración perfecta para Reels. Producto recurrente pero precio insuficiente para COD.", platforms:["instagram","tiktok","facebook"], margin:65, cost:"€3-4.5", cost_num:8, price:"€16-25", price_sale:22, heat:4, trend:"up", wow:3, cod_ok:false, amazon:"medium", fb_days:50, cod_note:"Precio insuficiente para absorber costes COD", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-4-in-1-travel-pump-bottle.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=travel+pump+bottle"}] },
+      { rank:5, name:"Luz Anillo LED Clip Selfie", desc:"Luz de relleno LED con clip para móvil. Alta demanda constante pero precio muy bajo y totalmente saturado en Amazon.", platforms:["tiktok","instagram"], margin:78, cost:"€2-4", cost_num:3, price:"€12-18", price_sale:15, heat:3, trend:"stable", wow:2, cod_ok:false, amazon:"high", fb_days:365, cod_note:"Precio muy bajo, saturación total Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-ring-light-clip-phone.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=ring+light+clip+selfie"}] }
     ]
   },
   {
     id:"moda", icon:"👗", name:"Moda & Accesorios",
     products:[
-      { rank:1, name:"Hoodie Doble (Parejas)", desc:"Sudadera XXL con dos capuchas para llevar a dos personas. Viral entre parejas Gen Z. Contenido 'couple goals' con millones de vistas. Alta demanda emocional.", platforms:["tiktok","instagram"], margin:65, cost:"€14-18", price:"€45-65", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-couple-double-hoodie.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=couple+hoodie+double"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=couple+hoodie"}] },
-      { rank:2, name:"Labubu / Figuras Colección", desc:"Coleccionables vinilo (Labubu, Sonny Angel, Sylvanian). Unboxing = millones de vistas. Alta repetición de compra. Comunidad muy activa.", platforms:["tiktok","instagram"], margin:60, cost:"€8-15", price:"€22-45", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-labubu-figure.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=labubu+unboxing"}] },
-      { rank:3, name:"Bolso Crochet Handmade Look", desc:"Bolsos estilo crochet artesanal (producción industrial). Tendencia boho 2026. El 'hecho a mano' perceived value multiplica el precio posible.", platforms:["instagram","facebook"], margin:73, cost:"€6-10", price:"€28-42", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-crochet-bag-handmade.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=crochet+bag+handmade"}] },
-      { rank:4, name:"Anillo Ajustable Acero Inox", desc:"Anillos minimalistas en acero inoxidable dorado/plateado. Sin alérgicos, no se oxida. Pack de 3-5 anillos = ticket más alto. Fácil de hacer viral.", platforms:["instagram","tiktok"], margin:80, cost:"€1.5-3", price:"€14-22", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-stainless-steel-adjustable-ring.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=adjustable+stainless+steel+ring"}] },
-      { rank:5, name:"Sneakers Chunky Pastel", desc:"Zapatillas chunky en tonos pastel. Tendencia footwear 2026. Contenido OOTD viral en TikTok. Ticket alto pero margen excelente con proveedor directo.", platforms:["tiktok","instagram"], margin:62, cost:"€18-25", price:"€55-80", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-chunky-sneakers-pastel.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=chunky+sneakers+pastel"}] }
+      { rank:1, name:"Hoodie Doble (Parejas)", desc:"Sudadera XXL con dos capuchas para dos personas. Viral entre parejas Gen Z. 'Couple goals' con millones de vistas. No en Amazon España.", platforms:["tiktok","instagram"], margin:65, cost:"€14-18", cost_num:19, price:"€45-65", price_sale:55, heat:5, trend:"hot", wow:4, cod_ok:true, amazon:"low", fb_days:30, cod_note:"✅ Precio óptimo, viral orgánico, no en Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-couple-double-hoodie.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=couple+hoodie+double"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=couple+hoodie"}] },
+      { rank:2, name:"Labubu / Figuras Colección", desc:"Coleccionables vinilo (Labubu, Sonny Angel). Unboxing = millones de vistas. Alta repetición de compra. Riesgo: tendencia puede ser pasajera.", platforms:["tiktok","instagram"], margin:60, cost:"€8-15", cost_num:14, price:"€22-45", price_sale:35, heat:5, trend:"hot", wow:4, cod_ok:false, amazon:"medium", fb_days:45, cod_note:"Margen ajustado; riesgo tendencia pasajera", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-labubu-figure.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=labubu+unboxing"}] },
+      { rank:3, name:"Bolso Crochet Handmade Look", desc:"Bolsos estilo crochet artesanal (producción industrial). Tendencia boho 2026. Precio en límite inferior para COD — subir a €42+.", platforms:["instagram","facebook"], margin:73, cost:"€6-10", cost_num:11, price:"€28-42", price_sale:39, heat:4, trend:"up", wow:3, cod_ok:false, amazon:"low", fb_days:20, cod_note:"Subir precio a €42+ para COD seguro", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-crochet-bag-handmade.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=crochet+bag+handmade"}] },
+      { rank:4, name:"Anillo Ajustable Acero Inox", desc:"Anillos minimalistas en acero inoxidable. Sin alérgicos, no se oxida. Precio insuficiente para COD + saturación total en Amazon.", platforms:["instagram","tiktok"], margin:80, cost:"€1.5-3", cost_num:4, price:"€14-22", price_sale:18, heat:3, trend:"stable", wow:2, cod_ok:false, amazon:"high", fb_days:200, cod_note:"Precio insuficiente + saturación total", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-stainless-steel-adjustable-ring.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=adjustable+stainless+steel+ring"}] },
+      { rank:5, name:"Sneakers Chunky Pastel", desc:"Zapatillas chunky en tonos pastel. Tendencia footwear 2026. Precio demasiado alto para COD sin historial de marca.", platforms:["tiktok","instagram"], margin:62, cost:"€18-25", cost_num:25, price:"€55-80", price_sale:65, heat:4, trend:"new", wow:3, cod_ok:false, amazon:"low", fb_days:10, cod_note:"Precio alto para COD sin historial de marca", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-chunky-sneakers-pastel.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=chunky+sneakers+pastel"}] }
     ]
   },
   {
     id:"salud", icon:"💪", name:"Salud & Fitness",
     products:[
-      { rank:1, name:"Posture Corrector Smart", desc:"Corrector de postura con vibración cuando te encorvos. Viral en vídeos 'officevlog' y trabajo remoto. Nicho de dolor real = alta conversión.", platforms:["tiktok","facebook"], margin:67, cost:"€8-12", price:"€28-40", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-posture-corrector.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=posture+corrector"},{label:"TikTok",url:"https://www.tiktok.com/search?q=posture+corrector+review"}] },
-      { rank:2, name:"Portable Cold Plunge Tub", desc:"Bañera inflable para ice bath. Trend biohacker 2026 impulsado por influencers de productividad y deporte. Ticket alto = alto margen absoluto.", platforms:["tiktok","facebook"], margin:55, cost:"€35-50", price:"€89-130", heat:4, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cold-plunge-tub-inflatable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cold+plunge+ice+bath"}] },
-      { rank:3, name:"Resistance Bands Set Pro", desc:"Set de bandas de resistencia con diferentes niveles. Demanda constante, nicho fitness enorme. Bundle barato con bolsa = valor percibido alto.", platforms:["tiktok","instagram","facebook"], margin:74, cost:"€5-8", price:"€22-32", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-resistance-bands-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=resistance+bands+set"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=resistance+bands"}] },
-      { rank:4, name:"Accesorios Pádel Bundle", desc:"Pack overgrips + protector + funda para pala. Mercado en explosión España/Latam. Bundle aumenta AOV. Poco competido en Facebook Ads.", platforms:["facebook","instagram"], margin:62, cost:"€8-13", price:"€24-38", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-padel-accessories.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=padel+accesorios"}] },
-      { rank:5, name:"Massage Gun Mini Pro", desc:"Pistola de masaje compacta para bolso. Versión mini viral frente a modelos grandes. Demostración en músculo = vídeo perfecto. Alta recompra como regalo.", platforms:["tiktok","instagram","facebook"], margin:65, cost:"€12-18", price:"€38-55", heat:3, trend:"stable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-mini-massage-gun.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=mini+massage+gun"}] }
+      { rank:1, name:"Posture Corrector Smart con Vibración", desc:"Corrector de postura con vibración al encurvarte. Nicho dolor de espalda = compra impulsiva alta. No saturado en Amazon España. COD ideal.", platforms:["tiktok","facebook"], margin:67, cost:"€10-14", cost_num:13, price:"€35-48", price_sale:42, heat:4, trend:"up", wow:4, cod_ok:true, amazon:"low", fb_days:35, cod_note:"✅ Dolor espalda = compra impulsiva, precio óptimo", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-smart-posture-corrector-vibration.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=posture+corrector"},{label:"TikTok",url:"https://www.tiktok.com/search?q=posture+corrector+review"}] },
+      { rank:2, name:"Massage Gun Mini Pro", desc:"Pistola de masaje compacta para bolso. Demo en músculo = vídeo perfecto. Precio viable COD diferenciando con bundle o color.", platforms:["tiktok","instagram","facebook"], margin:65, cost:"€12-18", cost_num:16, price:"€38-55", price_sale:45, heat:3, trend:"stable", wow:3, cod_ok:true, amazon:"medium", fb_days:90, cod_note:"✅ Precio viable; diferenciar con bundle o color", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-mini-massage-gun.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=mini+massage+gun"}] },
+      { rank:3, name:"Accesorios Pádel Bundle", desc:"Pack overgrips + protector + funda para pala. Mercado explosión España/Latam. Precio en límite inferior para COD.", platforms:["facebook","instagram"], margin:62, cost:"€8-13", cost_num:13, price:"€24-38", price_sale:35, heat:4, trend:"up", wow:2, cod_ok:false, amazon:"medium", fb_days:25, cod_note:"Precio en límite; margen ajustado con COD fees", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-padel-accessories.html"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=padel+accesorios"}] },
+      { rank:4, name:"Resistance Bands Set Pro", desc:"Set de bandas de resistencia con diferentes niveles. Demanda constante pero precio bajo y saturación total en Amazon.", platforms:["tiktok","instagram","facebook"], margin:74, cost:"€5-8", cost_num:7, price:"€22-32", price_sale:28, heat:3, trend:"stable", wow:2, cod_ok:false, amazon:"high", fb_days:300, cod_note:"Precio bajo + saturación Amazon total", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-resistance-bands-set.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=resistance+bands+set"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=resistance+bands"}] },
+      { rank:5, name:"Portable Cold Plunge Tub", desc:"Bañera inflable para ice bath. Trend biohacker 2026. WOW factor máximo pero precio demasiado alto para COD.", platforms:["tiktok","facebook"], margin:55, cost:"€35-50", cost_num:45, price:"€89-130", price_sale:99, heat:4, trend:"hot", wow:5, cod_ok:false, amazon:"medium", fb_days:20, cod_note:"Precio muy alto para COD; usar pasarela de pago", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cold-plunge-tub-inflatable.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cold+plunge+ice+bath"}] }
     ]
   },
   {
     id:"mascotas", icon:"🐾", name:"Mascotas",
     products:[
-      { rank:1, name:"AirTag Collar GPS Perro", desc:"Collar compatible con AirTag estilo cuero de diseño. Millones de dueños de perros en mercado. Preocupación por perder mascota = alta conversión emocional.", platforms:["tiktok","instagram","facebook"], margin:68, cost:"€8-12", price:"€28-42", heat:5, trend:"hot", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-collar-airtag.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+collar+airtag"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+collar+airtag"}] },
-      { rank:2, name:"Cat Water Fountain Smart", desc:"Fuente de agua para gatos con filtro y flujo silencioso. Propietarios de gatos = compradores impulsivos para sus mascotas. Reviews = contenido viral.", platforms:["tiktok","instagram"], margin:65, cost:"€10-15", price:"€32-48", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cat-water-fountain.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cat+water+fountain"}] },
-      { rank:3, name:"Lick Mat Enriquecimiento", desc:"Tapete de lamer para perros/gatos con peanut butter. Vídeos de mascotas + tapete = algoritmo favorito. Precio bajo = regalo perfecto.", platforms:["tiktok","instagram"], margin:75, cost:"€3-5", price:"€14-22", heat:4, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-lick-mat-dog.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=lick+mat+dog"},{label:"TikTok",url:"https://www.tiktok.com/search?q=lick+mat+dog"}] },
-      { rank:4, name:"Dog Paw Cleaner Cup", desc:"Limpiador de patas de perro post-paseo. Problema real con solución obvia. Demo = agua sucia vs agua limpia en vídeo = altísimo CTR.", platforms:["tiktok","facebook"], margin:70, cost:"€4-7", price:"€16-25", heat:4, trend:"new", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-paw-cleaner.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=dog+paw+cleaner"}] },
-      { rank:5, name:"Dog Cooling Mat Premium", desc:"Colchoneta refrescante para perros en verano. Estacional pero con pico enorme (mayo-agosto). Compra impulsiva de propietarios preocupados por el calor.", platforms:["facebook","instagram"], margin:62, cost:"€8-12", price:"€24-35", heat:3, trend:"up", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-cooling-mat.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+cooling+mat"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+cooling+mat"}] }
+      { rank:1, name:"Dog Paw Cleaner Cup Silicona", desc:"Limpiador de patas de perro post-paseo. Demo: agua sucia vs agua limpia en 3 segundos = CTR brutal. No en Amazon España.", platforms:["tiktok","facebook"], margin:70, cost:"€9-14", cost_num:12, price:"€35-48", price_sale:39, heat:4, trend:"new", wow:5, cod_ok:true, amazon:"low", fb_days:25, cod_note:"✅ Demo en video brutal, precio ideal, sin Amazon", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-paw-cleaner-silicone.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=dog+paw+cleaner"}] },
+      { rank:2, name:"Cat Water Fountain Smart Silenciosa", desc:"Fuente de agua para gatos con filtro y flujo silencioso. Propietarios de gatos = compradores impulsivos. Precio óptimo COD.", platforms:["tiktok","instagram"], margin:65, cost:"€12-18", cost_num:15, price:"€35-50", price_sale:42, heat:4, trend:"up", wow:4, cod_ok:true, amazon:"medium", fb_days:40, cod_note:"✅ Precio óptimo; diferenciarse por diseño/silencio", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-cat-water-fountain-silent.html"},{label:"TikTok",url:"https://www.tiktok.com/search?q=cat+water+fountain"}] },
+      { rank:3, name:"Lick Mat Enriquecimiento Perros", desc:"Tapete de lamer para perros/gatos. Vídeos de mascotas + tapete = algoritmo favorito. Precio demasiado bajo para COD viable.", platforms:["tiktok","instagram"], margin:75, cost:"€3-5", cost_num:4, price:"€14-22", price_sale:18, heat:4, trend:"up", wow:4, cod_ok:false, amazon:"medium", fb_days:60, cod_note:"Precio demasiado bajo para COD viable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-lick-mat-dog.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=lick+mat+dog"},{label:"TikTok",url:"https://www.tiktok.com/search?q=lick+mat+dog"}] },
+      { rank:4, name:"AirTag Collar GPS Perro", desc:"Collar compatible con AirTag de diseño. Alta demanda pero saturado en Amazon. Preocupación por perder mascota = conversión emocional.", platforms:["tiktok","instagram","facebook"], margin:68, cost:"€8-12", cost_num:11, price:"€28-42", price_sale:35, heat:5, trend:"hot", wow:3, cod_ok:false, amazon:"high", fb_days:180, cod_note:"Alta saturación Amazon; precio en límite", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-collar-airtag.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+collar+airtag"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+collar+airtag"}] },
+      { rank:5, name:"Dog Cooling Mat Premium", desc:"Colchoneta refrescante para perros en verano. Pico mayo-agosto. Precio por debajo del mínimo para COD viable.", platforms:["facebook","instagram"], margin:62, cost:"€8-12", cost_num:12, price:"€24-35", price_sale:32, heat:3, trend:"up", wow:2, cod_ok:false, amazon:"medium", fb_days:30, cod_note:"Precio por debajo del mínimo COD viable", links:[{label:"AliExpress",url:"https://www.aliexpress.com/w/wholesale-dog-cooling-mat.html"},{label:"Amazon",url:"https://www.amazon.com/s?k=dog+cooling+mat"},{label:"FB Ads",url:"https://www.facebook.com/ads/library/?q=dog+cooling+mat"}] }
     ]
   }
 ];
@@ -421,6 +429,7 @@ const TOOLS = [
 // STATE
 // ============================================================
 let currentPlatform = 'all';
+let showCodOnly = false;
 
 // ============================================================
 // RENDER PRODUCTS
@@ -435,12 +444,14 @@ function renderAll() {
     let products = cat.products.filter(p => {
       const matchPlatform = currentPlatform === 'all' || p.platforms.includes(currentPlatform);
       const matchSearch = !q || p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || cat.name.toLowerCase().includes(q);
-      return matchPlatform && matchSearch;
+      const matchCod = !showCodOnly || p.cod_ok;
+      return matchPlatform && matchSearch && matchCod;
     });
 
     if (sort === 'margin') products.sort((a,b)=>b.margin-a.margin);
     else if (sort === 'heat') products.sort((a,b)=>b.heat-a.heat);
-    else if (sort === 'price') products.sort((a,b)=> parseFloat(a.price)-parseFloat(b.price));
+    else if (sort === 'wow') products.sort((a,b)=>b.wow-a.wow);
+    else if (sort === 'fb_ads') products.sort((a,b)=>b.fb_days-a.fb_days);
 
     if (products.length === 0) return;
     totalProducts += products.length;
@@ -454,7 +465,8 @@ function renderAll() {
       </div>
       <table class="prod-table">
         <thead><tr>
-          <th>#</th><th>Producto</th><th>Plataformas</th><th>Margen</th><th>Precio venta</th><th>Calor</th><th>Tendencia</th><th>Investigar</th>
+          <th>#</th><th>Producto</th><th>Plataformas</th><th>Margen</th>
+          <th>Precio venta ES</th><th>WOW</th><th>🇪🇸 COD</th><th>FB Ads</th><th>Investigar</th>
         </tr></thead>
         <tbody>`;
 
@@ -462,27 +474,47 @@ function renderAll() {
       const rankClass = i===0?'top1':i===1?'top2':i===2?'top3':'';
       const rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${p.rank}`;
       const dots = Array.from({length:5},(_,j)=>`<span class="hdot${j<p.heat?' on':''}"></span>`).join('');
+      const wowDots = Array.from({length:5},(_,j)=>`<span class="hdot${j<p.wow?' on warm':''}"></span>`).join('');
       const trendMap = {hot:'🔥 Explosivo',up:'📈 Subiendo',new:'✨ Emergente',stable:'⚡ Estable'};
-      const trendClass = {hot:'trend-hot',up:'trend-up',new:'trend-new',stable:'trend-stable'};
       const ptags = p.platforms.map(pl=>({tiktok:'<span class="ptag ptag-tt">TikTok</span>',instagram:'<span class="ptag ptag-ig">IG</span>',facebook:'<span class="ptag ptag-fb">FB</span>'}[pl])).join('');
       const links = p.links.map((l,li)=>`<a class="link-btn${li===0?' primary':''}" href="${l.url}" target="_blank">${l.label}</a>`).join('');
+
+      // COD badge
+      const codBadge = p.cod_ok
+        ? `<div style="display:inline-block;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);border-radius:6px;padding:3px 8px;font-size:0.68rem;font-weight:800;color:#10b981">✅ APTO</div>`
+        : `<div style="display:inline-block;background:rgba(107,114,128,0.1);border:1px solid rgba(107,114,128,0.25);border-radius:6px;padding:3px 8px;font-size:0.68rem;font-weight:700;color:var(--muted)">✗ No apto</div>`;
+      const codNote = `<div style="font-size:0.68rem;color:var(--muted);margin-top:4px;max-width:180px;line-height:1.3">${p.cod_note}</div>`;
+
+      // Amazon badge
+      const amazonMap = {low:'🟢 Baja',medium:'🟡 Media',high:'🔴 Alta'};
+      const amazonBadge = `<div style="font-size:0.68rem;color:var(--muted);margin-top:3px">Amazon ES: ${amazonMap[p.amazon]||'?'}</div>`;
+
+      // FB ads badge
+      const fbColor = p.fb_days >= 60 ? '#10b981' : p.fb_days >= 20 ? '#f59e0b' : '#6b7280';
+      const fbBadge = `<div style="font-size:0.78rem;font-weight:700;color:${fbColor}">${p.fb_days}d activos</div>
+        <a href="https://www.facebook.com/ads/library/?q=${encodeURIComponent(p.name)}&country=ES" target="_blank" style="font-size:0.68rem;color:#a855f7;text-decoration:none">Ver en FB →</a>`;
+
+      // Price col
+      const priceCol = `<div><span class="metric-chip chip-yellow">€${p.price_sale} recom.</span>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:3px">Rango: ${p.price} · Coste: ${p.cost}</div></div>`;
 
       html += `<tr class="prod-row">
         <td><span class="rank ${rankClass}">${rankEmoji}</span></td>
         <td><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div></td>
         <td><div class="platform-tags">${ptags}</div></td>
         <td><span class="metric-chip chip-green">${p.margin}%</span></td>
-        <td><div><span class="metric-chip chip-yellow">${p.price}</span><div style="font-size:0.7rem;color:var(--muted);margin-top:3px">Coste: ${p.cost}</div></div></td>
-        <td><div class="heat-bar">${dots}</div></td>
-        <td><span class="trend-badge ${trendClass[p.trend]}">${trendMap[p.trend]}</span></td>
+        <td>${priceCol}</td>
+        <td><div class="heat-bar">${wowDots}</div><div style="font-size:0.66rem;color:var(--muted);margin-top:2px">${p.wow}/5</div></td>
+        <td>${codBadge}${codNote}${amazonBadge}</td>
+        <td>${fbBadge}</td>
         <td><div class="links">${links}</div></td>
-      </tr><tr class="spacer"><td colspan="8"></td></tr>`;
+      </tr><tr class="spacer"><td colspan="9"></td></tr>`;
     });
 
     html += `</tbody></table></div>`;
   });
 
-  document.getElementById('productsContainer').innerHTML = html || '<p style="color:var(--muted);padding:20px">No se encontraron productos.</p>';
+  document.getElementById('productsContainer').innerHTML = html || '<p style="color:var(--muted);padding:20px">No se encontraron productos. Prueba a quitar el filtro COD.</p>';
   renderStats(totalProducts);
 }
 
@@ -490,12 +522,15 @@ function renderStats(total) {
   const allProds = CATEGORIES.flatMap(c=>c.products);
   const avgMargin = Math.round(allProds.reduce((s,p)=>s+p.margin,0)/allProds.length);
   const hotCount = allProds.filter(p=>p.heat>=5).length;
+  const codCount = allProds.filter(p=>p.cod_ok).length;
+  const avgWow = (allProds.reduce((s,p)=>s+(p.wow||0),0)/allProds.length).toFixed(1);
   document.getElementById('statsBar').innerHTML = `
     <div class="stat-card"><div class="stat-val" style="color:#a855f7">${CATEGORIES.length}</div><div class="stat-lbl">Categorías</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#10b981">${total}</div><div class="stat-lbl">Productos analizados</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#f59e0b">${avgMargin}%</div><div class="stat-lbl">Margen promedio</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#fe2c55">${codCount}</div><div class="stat-lbl">🇪🇸 Aptos COD España</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#f59e0b">${avgWow}/5</div><div class="stat-lbl">⭐ WOW Factor medio</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#fe2c55">${hotCount}</div><div class="stat-lbl">🔥 Calor máximo</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:#3b82f6">Semanal</div><div class="stat-lbl">Frecuencia update</div></div>
   `;
 }
 
@@ -517,8 +552,17 @@ function renderTools() {
 
 function setPlatform(p, btn) {
   currentPlatform = p;
-  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-pill:not(#codFilter)').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  renderAll();
+}
+
+function toggleCod(btn) {
+  showCodOnly = !showCodOnly;
+  btn.style.background = showCodOnly ? 'rgba(254,44,85,0.2)' : '';
+  btn.style.color = '#fe2c55';
+  btn.style.borderColor = '#fe2c55';
+  btn.style.fontWeight = showCodOnly ? '800' : '600';
   renderAll();
 }
 
